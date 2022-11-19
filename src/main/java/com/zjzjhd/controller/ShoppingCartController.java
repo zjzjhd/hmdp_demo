@@ -71,6 +71,11 @@ public class ShoppingCartController {
         List<ShoppingCart> list = shoppingCartService.list(queryWrapper);
         return R.success(list);
     }
+    /**
+     * @description: 清除购物车
+     * @param: []
+     * @return: R<String>
+     */
 
     @DeleteMapping("/clean")
     public R<String> clean() {
