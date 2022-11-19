@@ -113,6 +113,11 @@ public class AddressBookController {
         return R.success("修改地址成功");
     }
 
+    /**
+     * @description: 显示默认地址
+     * @param: []
+     * @return: R<AddressBook>
+     */
     @GetMapping("/default")
     public R<AddressBook> getAddress() {
         Long currentId = BaseContext.getCurrentId();
