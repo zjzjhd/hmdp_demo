@@ -3,10 +3,8 @@ package com.zjzjhd.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zjzjhd.common.R;
-import com.zjzjhd.dto.DishDto;
 import com.zjzjhd.dto.SetmealDto;
 import com.zjzjhd.entity.Category;
-import com.zjzjhd.entity.DishFlavor;
 import com.zjzjhd.entity.Setmeal;
 import com.zjzjhd.service.CategoryService;
 import com.zjzjhd.service.SetmealDishService;
@@ -14,6 +12,8 @@ import com.zjzjhd.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,6 +38,7 @@ public class SetmealDishController {
     private CategoryService categoryService;
 
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)//所有缓存都清除
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("信息 {}", setmealDto);
         setmealService.saveWithDish(setmealDto);
@@ -72,7 +73,7 @@ public class SetmealDishController {
             return setmealDto;
         }).collect(Collectors.toList());
 
-        BeanUtils.copyProperties(pageInfo, setmealDtoPage,"records");
+        BeanUtils.copyProperties(pageInfo, setmealDtoPage, "records");
         setmealDtoPage.setRecords(list);
 
         return R.success(setmealDtoPage);
@@ -84,7 +85,8 @@ public class SetmealDishController {
      * @return: R<String>
      */
     @DeleteMapping
-    public R<String> delete( @RequestParam("ids") List<Long> ids){
+    @CacheEvict(value = "setmealCache", allEntries = true)//所有缓存都清除
+    public R<String> delete(@RequestParam("ids") List<Long> ids) {
         //删除菜品  这里的删除是逻辑删除
         setmealService.deleteByIds(ids);
         return R.success("菜品删除成功");
@@ -96,12 +98,14 @@ public class SetmealDishController {
         setmealService.updateByBatch(status, ids);
         return R.success("售卖状态修改成功");
     }
+
     @GetMapping("/list")
-    public R<List<Setmeal>> list(@RequestParam long categoryId,int status){
-        log.info("id = {}",categoryId);
+    @Cacheable(value = "setmealCache", key = "#categoryId+'_'+#status")
+    public R<List<Setmeal>> list(@RequestParam long categoryId, int status) {
+        log.info("id = {}", categoryId);
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Setmeal::getCategoryId,categoryId);
-        queryWrapper.eq(Setmeal::getStatus,status);
+        queryWrapper.eq(Setmeal::getCategoryId, categoryId);
+        queryWrapper.eq(Setmeal::getStatus, status);
         queryWrapper.orderByAsc(Setmeal::getUpdateTime);
         List<Setmeal> list = setmealService.list(queryWrapper);
         return R.success(list);
