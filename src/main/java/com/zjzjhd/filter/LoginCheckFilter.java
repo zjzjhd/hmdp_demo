@@ -43,14 +43,8 @@ public class LoginCheckFilter implements Filter {
         String requestURL = request.getRequestURI();
 
         //定义不需要处理的请求路径  比如静态资源(静态页面我们不需要拦截,因为此时的静态页面是没有数据的)
-        String[] urls = new String[]{
-                "/employee/login",
-                "/employee/logout",
-                "/backend/**",
-                "/front/**",
-                "/common/**",
-                "/user/sendMsg",
-                "/user/login"
+        String[] urls = new String[]{"/employee/login", "/employee/logout", "/backend/**", "/front/**", "/common/**", "/user/sendMsg", "/user/login", "/doc.html", "/webjars/**", "/swagger-resources", "/v2/api-docs"
+
         };
         //2、判断本次请求是否需要处理
         boolean check = check(urls, requestURL);
